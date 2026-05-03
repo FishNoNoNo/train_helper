@@ -1,4 +1,3 @@
-import appService from '@/service/app.service'
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 
 const routes: Readonly<RouteRecordRaw[]> = [
@@ -24,14 +23,14 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, _) => {
-  if (to.name !== 'login' && !appService.logined()) {
-    return '/login'
-  } else if (to.name === 'login' && appService.logined()) {
-    return '/home'
-  } else {
-    return
+const publicPages = new Set(['home', 'login'])
+
+router.beforeEach((to) => {
+  if (publicPages.has(String(to.name))) {
+    return true
   }
+
+  return true
 })
 
 export default router

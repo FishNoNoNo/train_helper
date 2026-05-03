@@ -62,6 +62,64 @@ class Parser {
     }
     return parsedDate
   }
+
+  parseCnToTime(time) {
+    if (time instanceof Date) {
+      return time
+    }
+    // 5月？10日？10点30分？（?表示可能有）
+    const match = time.match(/(\d+)月(\d+)日(\d+)点(\d+)分/)
+    if (!match) {
+      throw new Error(`Invalid time: ${time}`)
+    }
+    const [, month, day, hour, minute] = match
+    const parsedDate = new Date()
+    parsedDate.setMonth(parseInt(month) - 1)
+    parsedDate.setDate(parseInt(day))
+    parsedDate.setHours(parseInt(hour))
+    parsedDate.setMinutes(parseInt(minute))
+    parsedDate.setSeconds(0)
+    return parsedDate
+  }
+
+  getDateFromCn(cnDate) {
+    const match = cnDate.match(/(?:(\d+)月)?(?:(\d+)日)?/)
+    if (!match) {
+      throw new Error(`Invalid date: ${cnDate}`)
+    }
+    const month = match[1] || ''
+    const day = match[2] || ''
+    const parsedDate = new Date()
+    month && parsedDate.setMonth(parseInt(month) - 1)
+    day && parsedDate.setDate(parseInt(day))
+    parsedDate.setHours(0)
+    parsedDate.setMinutes(0)
+    parsedDate.setSeconds(0)
+    return parsedDate
+  }
+
+  getTimeFromCn(cnTime) {
+    // 可能没有分钟
+    const match = cnTime.match(/(\d+)点(?:(\d+)分)?/)
+    if (!match) {
+      throw new Error(`Invalid time: ${cnTime}`)
+    }
+    const hour = match[1]
+    const minute = match[2] || ''
+    const parsedDate = new Date()
+    parsedDate.setHours(parseInt(hour))
+    minute ? parsedDate.setMinutes(parseInt(minute)) : parsedDate.setMinutes(0)
+    parsedDate.setSeconds(0)
+    return parsedDate
+  }
+
+  mergeTime(date: Date, time: Date) {
+    date.setHours(time.getHours())
+    date.setMinutes(time.getMinutes())
+    date.setSeconds(time.getSeconds())
+    return date
+  }
 }
 
-export { Parser }
+const parser = new Parser()
+export default parser

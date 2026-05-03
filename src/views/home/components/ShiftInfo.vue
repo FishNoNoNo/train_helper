@@ -1,261 +1,269 @@
-<!-- src/components/ShiftInfo.vue -->
-
 <script setup lang="ts">
-import appService from '@/service/app.service'
 import type { Seat, Shift } from '@/types/train.d'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ArrowRight, ChevronLeft, ShoppingCart, Ticket, Trash2 } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 
 interface Props {
   shifts: Shift[]
+  selectedShifts: Shift[]
 }
 
 const props = defineProps<Props>()
 
+const emit = defineEmits<{
+  (e: 'changeSearch'): void
+  (e: 'toggleShift', shift: Shift): void
+  (e: 'removeShift', shift: Shift): void
+  (e: 'checkout'): void
+}>()
+
 const currentFilter = ref('all')
+const cartOpen = ref(false)
 
-// const filters = [
-//   { label: '全部', value: 'all' },
-//   { label: '二等座有余票', value: 'hasSecondClass' },
-//   { label: '硬座有余票', value: 'hasHardSeat' },
-// ]
+const getShiftKey = (shift: Shift) =>
+  `${shift.trainNo}-${shift.trainDate}-${shift.fromStationCode}-${shift.toStationCode}`
 
-const filters = computed(() => {
-  const res = [
-    {
-      label: '全部',
-      value: 'all',
-    },
-  ]
-  if (props.shifts.some((shift) => shift.seat.secondClass)) {
-    res.push({
-      label: '二等座有余票',
-      value: 'hasSecondClass',
-    })
+const filterOptions = computed(() => {
+  const options = [{ label: '全部班次', value: 'all' }]
+
+  if (props.shifts.some((shift) => shift.seat.secondClass && shift.seat.secondClass !== '--')) {
+    options.push({ label: '二等座', value: 'secondClass' })
   }
-  if (props.shifts.some((shift) => shift.seat.firstClass)) {
-    res.push({
-      label: '一等座有余票',
-      value: 'hasFirstClass',
-    })
+
+  if (props.shifts.some((shift) => shift.seat.firstClass && shift.seat.firstClass !== '--')) {
+    options.push({ label: '一等座', value: 'firstClass' })
   }
-  if (props.shifts.some((shift) => shift.seat.topGrade)) {
-    res.push({
-      label: '特等座有余票',
-      value: 'hasTopGrade',
-    })
+
+  if (props.shifts.some((shift) => shift.seat.topGrade && shift.seat.topGrade !== '--')) {
+    options.push({ label: '商务座', value: 'topGrade' })
   }
-  if (props.shifts.some((shift) => shift.seat.hardSeat)) {
-    res.push({
-      label: '硬座有余票',
-      value: 'hasHardSeat',
-    })
+
+  if (props.shifts.some((shift) => shift.seat.hardSeat && shift.seat.hardSeat !== '--')) {
+    options.push({ label: '硬座', value: 'hardSeat' })
   }
-  return res
+
+  return options
 })
 
-// 示例数据
+const seatFields: Array<{ key: keyof Seat; label: string }> = [
+  { key: 'topGrade', label: '商务/特等' },
+  { key: 'firstClass', label: '一等座' },
+  { key: 'secondClass', label: '二等座' },
+  { key: 'hardSeat', label: '硬座' },
+  { key: 'hardSleeper', label: '硬卧' },
+  { key: 'softSleeper', label: '软卧' },
+  { key: 'noSeat', label: '无座' },
+]
+
+const selectedShiftKeys = computed(() => new Set(props.selectedShifts.map(getShiftKey)))
+
+const hasSeatValue = (value: string) => Boolean(value && value !== '--' && value !== '无')
 
 const filteredShifts = computed(() => {
-  if (currentFilter.value === 'all') return props.shifts
-  else if (currentFilter.value === 'hasSecondClass') {
-    return props.shifts.filter((shift) => shift.seat.secondClass && shift.seat.secondClass !== '无')
-  } else if (currentFilter.value === 'hasFirstClass') {
-    return props.shifts.filter((shift) => shift.seat.firstClass && shift.seat.firstClass !== '无')
-  } else if (currentFilter.value === 'hasTopGrade') {
-    return props.shifts.filter((shift) => shift.seat.topGrade && shift.seat.topGrade !== '无')
-  } else if (currentFilter.value === 'hasHardSeat') {
-    return props.shifts.filter((shift) => shift.seat.hardSeat && shift.seat.hardSeat !== '无')
+  if (currentFilter.value === 'all') {
+    return props.shifts
   }
 
-  return props.shifts
+  return props.shifts.filter((shift) => hasSeatValue(shift.seat[currentFilter.value as keyof Seat]))
 })
 
-const fields = [
-  {
-    key: 'topGrade',
-    label: '特等座/商务座',
-  },
-  {
-    key: 'firstClass',
-    label: '一等座',
-  },
-  {
-    key: 'secondClass',
-    label: '二等座',
-  },
-  {
-    key: 'noSeat',
-    label: '无座',
-  },
-  {
-    key: 'hardSeat',
-    label: '硬座',
-  },
-  {
-    key: 'hardSleeper',
-    label: '硬卧',
-  },
-  {
-    key: 'softSleeper',
-    label: '软卧',
-  },
-]
-let timer: number | null = null
-const selectShift = async (shift: Shift) => {
-  console.log('选中班次:', shift)
-  await appService.submitOrderRequest(shift)
-  await appService.initDc(shift)
-  const res = await appService.getPassengers(1, 10)
-  const passengers = res.data.datas
-  appService.pushPassenger(0, 'O', 1)
-  await appService.checkOrderInfo()
-  await appService.getQueueCount(shift, 'O')
-  await appService.confirmSingleForQueue()
-  let i = 0
+const isSelected = (shift: Shift) => selectedShiftKeys.value.has(getShiftKey(shift))
 
-  let timer = window.setInterval(async () => {
-    const res = await appService.queryOrderWaitTime()
-    if (res.data.order_id) {
-      console.log('抢票成功,订单号:', res.order_id)
-      clearInterval(timer)
-    }
-    i++
-    if (i > 10) {
-      clearInterval(timer)
-    }
-  }, 1000)
+const handleCheckout = () => {
+  cartOpen.value = false
+  emit('checkout')
 }
-
-onMounted(() => {
-  if (timer) {
-    clearInterval(timer)
-    timer = null
-  }
-
-  // appService.getPassengers(1, 10).then((res) => {
-  //   const passengers = res.data.datas
-  //   appService.pushPassenger(0, 'O', 1)
-  // })
-})
-
-onUnmounted(() => {
-  if (timer) {
-    clearInterval(timer)
-    timer = null
-  }
-})
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- 标题 -->
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">班次信息</h2>
-      <p class="text-gray-500 text-sm mt-1">以下是今日所有班次</p>
+  <div class="relative flex h-full flex-col rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+    <div class="mb-4 flex items-center justify-between gap-4">
+      <h2 class="text-xl font-semibold text-slate-900">选择班次</h2>
+
+      <button
+        type="button"
+        class="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm text-slate-600 transition hover:bg-white"
+        @click="emit('changeSearch')"
+      >
+        <ChevronLeft class="h-4 w-4" />
+        修改搜索
+      </button>
     </div>
 
-    <!-- 筛选栏 -->
-    <div class="flex gap-2 mb-6 flex-wrap">
+    <div class="mb-4 flex flex-wrap gap-2">
       <button
-        v-for="filter in filters"
+        v-for="filter in filterOptions"
         :key="filter.value"
-        @click="currentFilter = filter.value"
-        class="px-4 py-2 rounded-lg transition-all duration-300"
+        type="button"
+        class="rounded-full border px-3 py-1.5 text-sm transition"
         :class="
           currentFilter === filter.value
-            ? 'bg-blue-600 text-white shadow-md'
-            : 'bg-white text-gray-700 hover:bg-gray-100'
+            ? 'border-slate-900 bg-slate-900 text-white'
+            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
         "
+        @click="currentFilter = filter.value"
       >
         {{ filter.label }}
       </button>
     </div>
 
-    <!-- 班次列表 -->
-    <div class="space-y-4">
-      <div
-        v-for="(shift, index) in filteredShifts"
-        :key="index"
-        class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300"
+    <div v-if="filteredShifts.length" class="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+      <article
+        v-for="shift in filteredShifts"
+        :key="getShiftKey(shift)"
+        class="rounded-2xl border p-4 transition"
+        :class="
+          isSelected(shift)
+            ? 'border-blue-200 bg-blue-50'
+            : 'border-slate-200 bg-white hover:border-slate-300'
+        "
       >
-        <!-- 车次和提示信息 -->
-        <div class="flex justify-between items-start mb-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-2 flex-wrap">
-              <span class="text-lg font-bold text-gray-800">{{ shift.stationTrainCode }}</span>
-              <!-- <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
-                {{ shift.tip }}
-              </span> -->
-            </div>
-
-            <!-- 时间信息 -->
-            <div class="flex items-center gap-4 mb-4">
-              <div class="text-center">
-                <p class="text-xl font-bold text-gray-900">{{ shift.startTime }}</p>
-                <p class="text-sm text-gray-500">
-                  <span
-                    class="text-white p-0.5 text-xs mr-1"
-                    :class="{ 'bg-orange-400': !shift.fromPass, 'bg-blue-400': shift.fromPass }"
-                    >{{ shift.fromPass ? '过' : '始' }}</span
-                  >{{ shift.fromStation }}
-                </p>
-              </div>
-              <div class="flex-1 flex flex-col items-center">
-                <div class="text-xs text-gray-400">行驶 {{ shift.useTime }}</div>
-                <div class="w-32 h-px bg-gray-300 my-2"></div>
-                <div class="text-xs text-gray-400">→</div>
-              </div>
-              <div class="text-center">
-                <p class="text-xl font-bold text-gray-900">{{ shift.endTime }}</p>
-                <p class="text-sm text-gray-500">
-                  <span
-                    class="text-white p-0.5 text-xs mr-1"
-                    :class="{
-                      'bg-emerald-500': !shift.fromPass,
-                      'bg-blue-400': shift.fromPass,
-                    }"
-                  >
-                    {{ shift.fromPass ? '过' : '终' }} </span
-                  >{{ shift.toStation }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 座位信息表格 -->
-        <div class="border-t pt-4 mb-4">
-          <h3 class="text-sm font-semibold text-gray-700 mb-2">座位信息</h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <template v-for="field in fields" :key="field.key">
-              <div
-                v-if="shift.seat[field.key as keyof Seat]"
-                class="bg-gray-50 rounded-lg p-2 text-center"
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0 flex-1 flex flex-col">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-lg font-semibold text-slate-900">{{ shift.stationTrainCode }}</span>
+              <span
+                v-if="!shift.canBook"
+                class="rounded-full bg-amber-50 px-2 py-1 text-xs text-amber-700"
               >
-                <p class="text-xs text-gray-500">{{ field.label }}</p>
-                <p class="text-lg font-bold text-orange-600">
-                  {{ shift.seat[field.key as keyof Seat] }}
+                {{ shift.tip }}
+              </span>
+              <button
+                type="button"
+                class="inline-flex shrink-0 items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition"
+                :class="
+                  isSelected(shift)
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-slate-900 text-white hover:bg-slate-800'
+                "
+                @click="emit('toggleShift', shift)"
+              >
+                <Ticket class="h-4 w-4" />
+                {{ isSelected(shift) ? '已加入' : '加入购物车' }}
+              </button>
+            </div>
+
+            <div class="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <div>
+                <p class="text-2xl font-semibold text-slate-900">{{ shift.startTime }}</p>
+                <p class="mt-1 text-sm text-slate-500">
+                  <span>{{ shift.fromStation }}</span>
+                  <span class="ml-1 text-xs">{{ shift.fromPass ? '过' : '始' }}</span>
                 </p>
               </div>
-            </template>
+
+              <div class="text-center text-xs text-slate-400">
+                <p>{{ shift.useTime }}</p>
+                <ArrowRight class="mx-auto my-1 h-4 w-4" />
+                <p>直达</p>
+              </div>
+
+              <div class="text-right">
+                <p class="text-2xl font-semibold text-slate-900">{{ shift.endTime }}</p>
+                <p class="mt-1 text-sm text-slate-500">
+                  <span class="mr-1 text-xs">{{ shift.toPass ? '过' : '终' }}</span>
+                  <span>{{ shift.toStation }}</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- 操作按钮 -->
-        <div class="border-t pt-4 flex justify-end">
-          <button
-            @click="selectShift(shift)"
-            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300"
-          >
-            预定
-          </button>
+        <div class="mt-4 grid grid-cols-3 gap-2 md:grid-cols-4">
+          <template v-for="field in seatFields" :key="field.key">
+            <div
+              v-if="shift.seat[field.key]"
+              class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
+            >
+              <p class="text-xs text-slate-400">{{ field.label }}</p>
+              <p class="mt-1 text-sm font-semibold text-slate-800">
+                {{ shift.seat[field.key] }}
+              </p>
+            </div>
+          </template>
         </div>
-      </div>
+      </article>
     </div>
 
-    <!-- 空状态 -->
-    <div v-if="filteredShifts.length === 0" class="text-center py-12">
-      <p class="text-gray-400">暂无班次信息</p>
+    <div
+      v-else
+      class="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white text-sm text-slate-400"
+    >
+      暂无班次
+    </div>
+
+    <button
+      type="button"
+      class="absolute bottom-5 right-5 flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-900 text-white shadow-lg transition hover:bg-slate-800"
+      @click="cartOpen = true"
+    >
+      <ShoppingCart class="h-6 w-6" />
+      <span
+        v-if="selectedShifts.length"
+        class="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-500 px-1 text-xs font-semibold"
+      >
+        {{ selectedShifts.length }}
+      </span>
+    </button>
+
+    <div
+      v-if="cartOpen"
+      class="absolute inset-0 z-20 flex items-end justify-end rounded-[24px] bg-slate-900/20 p-4"
+      @click.self="cartOpen = false"
+    >
+      <div
+        class="flex max-h-full w-full max-w-md flex-col rounded-3xl border border-slate-200 bg-white p-4 shadow-xl"
+      >
+        <div class="mb-3 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-slate-900">已选班次</h3>
+          <button
+            type="button"
+            class="rounded-full px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100"
+            @click="cartOpen = false"
+          >
+            关闭
+          </button>
+        </div>
+
+        <div v-if="selectedShifts.length" class="min-h-0 flex-1 space-y-2 overflow-y-auto">
+          <div
+            v-for="shift in selectedShifts"
+            :key="getShiftKey(shift)"
+            class="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3"
+          >
+            <div>
+              <p class="text-sm font-semibold text-slate-900">{{ shift.stationTrainCode }}</p>
+              <p class="mt-1 text-xs text-slate-500">
+                {{ shift.startTime }} {{ shift.fromStation }} -> {{ shift.endTime }}
+                {{ shift.toStation }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="rounded-xl p-2 text-slate-400 transition hover:bg-white hover:text-red-500"
+              @click="emit('removeShift', shift)"
+            >
+              <Trash2 class="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div
+          v-else
+          class="flex min-h-40 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400"
+        >
+          暂未选择班次
+        </div>
+
+        <button
+          type="button"
+          class="mt-4 h-11 rounded-2xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          :disabled="!selectedShifts.length"
+          @click="handleCheckout"
+        >
+          去预定
+        </button>
+      </div>
     </div>
   </div>
 </template>

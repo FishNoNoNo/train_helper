@@ -185,4 +185,23 @@ class HttpClient {
   }
 }
 
+export function raceSuccess<T>(promises: Promise<any>[]): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let rejectedCount = 0
+    const total = promises.length
+
+    promises.forEach((promise) => {
+      Promise.resolve(promise).then(
+        (result) => resolve(result), // 任意一个成功就 resolve
+        (_) => {
+          rejectedCount++
+          if (rejectedCount === total) {
+            reject(new Error('所有请求都失败了'))
+          }
+        },
+      )
+    })
+  })
+}
+
 export default HttpClient

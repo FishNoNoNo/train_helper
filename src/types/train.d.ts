@@ -28,4 +28,5 @@ export interface Shift {
   fromStation: string
   toStation: string
   seat: Seat
+  canBook: boolean
 }

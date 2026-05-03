@@ -2,13 +2,21 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "opener:default",
+    "core:window:allow-start-dragging",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://*.12306.cn/**" }]
-    }
+      "allow": [
+        {
+          "url": "https://*.12306.cn/**"
+        }
+      ]
+    },
+    "notification:default"
   ]
 }

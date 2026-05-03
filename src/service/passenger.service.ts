@@ -731,6 +731,15 @@ interface Passenger {
   gat_valid_date_end: string
   gat_version: string
 }
+
+export interface PassengerData {
+  index: number
+  passengerUuid: string
+  seatType: string
+  ticketType: number
+  chooseSeat: string
+}
+
 interface Cache {
   oldPassengers: {
     [key: string]: string
@@ -741,6 +750,10 @@ class PassengerManager {
   passengers: Passenger[] = []
   limitTickets: Ticket[] = []
   ticketInfo: any
+
+  passengerDatas: PassengerData[] = []
+
+  choiceSeats: string[] = []
 
   cache: Cache = {
     passengerTickets: '',
@@ -756,6 +769,17 @@ class PassengerManager {
     '2': '儿童票',
     '3': '学生票',
     '4': '残疾人票',
+  }
+
+  clearCache() {
+    this.cache = {
+      passengerTickets: '',
+      oldPassengers: {
+        fc: '',
+        gc: '',
+        dc: '',
+      },
+    }
   }
 
   setPassengers(passengers: Passenger[]) {
@@ -802,14 +826,19 @@ class PassengerManager {
     )
     console.log(aK)
     this.limitTickets.push(aK)
-    this.cache = {
-      passengerTickets: '',
-      oldPassengers: {
-        fc: '',
-        gc: '',
-        dc: '',
-      },
+    this.clearCache()
+  }
+
+  popPassenger(index: number) {
+    const popData = this.limitTickets.find(
+      (passenger) => passenger.name == this.passengers[index].passenger_name,
+    )
+    if (!popData) {
+      return
     }
+    this.limitTickets.splice(this.limitTickets.indexOf(popData), 1)
+    this.clearCache()
+    return popData
   }
 
   /**
@@ -882,6 +911,11 @@ class PassengerManager {
     this.cache.oldPassengers[tour_flag] = oldPassenger
 
     return oldPassenger
+  }
+
+  perLoadPassengersStr() {
+    this.getpassengerTickets()
+    this.getOldPassengers()
   }
 }
 

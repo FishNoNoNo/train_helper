@@ -6,7 +6,7 @@ class TrainService {
     return stations[name].threeCode
   }
 
-  parseSearchResult(res: any): Shift[] {
+  static parseSearchResult(res: any): Shift[] {
     try {
       const datas = res.data.result
       const map = res.data.map
@@ -15,7 +15,7 @@ class TrainService {
         const infos = (item as string).split('|')
         console.log(infos)
         const secretStr = infos[0]
-        const tip = infos[1]
+        const tip = infos[1].replace(/<.+?>/g, '')
         const trainNo = infos[2]
         const stationTrainCode = infos[3]
         const startStationCode = infos[4]
@@ -39,6 +39,7 @@ class TrainService {
         const seatDiscountInfo = infos[54]
           ? infos[13].slice(0, 4) + '-' + infos[13].slice(4, 6) + '-' + infos[13].slice(6, 8)
           : ''
+        const canBook = tip === '预订'
         const dit = {
           secretStr: secretStr,
           tip: tip,
@@ -68,6 +69,7 @@ class TrainService {
             topGrade: topGrade,
             softSleeper: softSleeper,
           },
+          canBook: canBook,
         }
         result.push(dit)
       }
@@ -78,8 +80,5 @@ class TrainService {
     }
   }
 }
-
-const trainService = new TrainService()
-export { trainService }
 
 export default TrainService
