@@ -457,7 +457,6 @@ class AppService {
     // console.log(cookieJar.getAllCookies())
     const globalRepeatSubmitToken = localStorage.getItem('globalRepeatSubmitToken')
 
-    // 鏋勫缓璇锋眰鍙傛暟锛屽弬鑰?12306FairTicket 椤圭洰鏍煎紡
     const data = {
       cancel_flag: '2',
       bed_level_order_num: '000000000000000000000000000000',

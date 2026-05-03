@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import stations from '@/data/station'
 import appService, { getSearchForm } from '@/service/app.service'
-import { ArrowUpDown, CalendarDays, Github, MapPin, Search } from 'lucide-vue-next'
+import { ArrowUpDown, CalendarDays, MapPin, Search } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
 const emit = defineEmits<{
@@ -137,14 +137,6 @@ onUnmounted(() => {
   <div class="flex h-full flex-col rounded-[24px] border border-slate-200 bg-slate-50 p-4">
     <div class="mb-4 flex items-center justify-between gap-4">
       <h2 class="text-xl font-semibold text-slate-900">搜索车票</h2>
-      <a
-        href="#"
-        class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-        @click.prevent
-      >
-        <Github class="h-4 w-4" />
-        GitHub
-      </a>
     </div>
 
     <form class="flex flex-1 flex-col" @submit.prevent="handleSearch">
@@ -152,7 +144,9 @@ onUnmounted(() => {
         <div ref="departureDropdownRef" class="relative">
           <label class="mb-2 block text-sm font-medium text-slate-700">出发地</label>
           <div class="relative">
-            <MapPin class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <MapPin
+              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+            />
             <input
               v-model="departureSearchText"
               type="text"
@@ -201,7 +195,9 @@ onUnmounted(() => {
         <div ref="destinationDropdownRef" class="relative">
           <label class="mb-2 block text-sm font-medium text-slate-700">目的地</label>
           <div class="relative">
-            <MapPin class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <MapPin
+              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+            />
             <input
               v-model="destinationSearchText"
               type="text"
@@ -241,7 +237,9 @@ onUnmounted(() => {
       <div class="mt-3 max-w-xs">
         <label class="mb-2 block text-sm font-medium text-slate-700">出发日期</label>
         <div class="relative">
-          <CalendarDays class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <CalendarDays
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+          />
           <input
             v-model="searchForm.date"
             type="date"
@@ -254,7 +252,9 @@ onUnmounted(() => {
         <button
           type="submit"
           class="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-          :disabled="isSearching || !searchForm.departure || !searchForm.destination || !searchForm.date"
+          :disabled="
+            isSearching || !searchForm.departure || !searchForm.destination || !searchForm.date
+          "
         >
           <Search class="h-4 w-4" />
           <span>{{ isSearching ? '搜索中...' : '搜索车票' }}</span>

@@ -18,6 +18,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/userStore'
 import { useDataStore } from '@/store/dataStore'
+import Github from '@/components/social/github.vue'
 
 type FlowStep = 'search' | 'results' | 'passengers' | 'bookingResult'
 type BookingStatus = 'waiting' | 'success' | 'failed'
@@ -333,21 +334,23 @@ onMounted(async () => {
               {{ searchSummary }}
             </p>
           </div>
-
-          <button
-            type="button"
-            class="inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-sm"
-            :class="
-              isLoggedIn
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : 'border-slate-200 bg-slate-50 text-slate-600'
-            "
-            @click="handleLoginBtnClick"
-          >
-            <LogIn v-if="isLoggedIn" class="h-4 w-4" />
-            <LogOut v-else class="h-4 w-4" />
-            <span>{{ isLoggedIn ? userStore.userName || '已登录' : '未登录' }}</span>
-          </button>
+          <div class="flex gap-3">
+            <Github />
+            <button
+              type="button"
+              class="inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-sm"
+              :class="
+                isLoggedIn
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-200 bg-slate-50 text-slate-600'
+              "
+              @click="handleLoginBtnClick"
+            >
+              <LogIn v-if="isLoggedIn" class="h-4 w-4" />
+              <LogOut v-else class="h-4 w-4" />
+              <span>{{ isLoggedIn ? userStore.userName || '已登录' : '未登录' }}</span>
+            </button>
+          </div>
         </div>
       </header>
 

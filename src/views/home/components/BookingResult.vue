@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Shift } from '@/types/train'
-import { CheckCircle2, Clock3, Github, RotateCcw, X, XCircle } from 'lucide-vue-next'
+import { CheckCircle2, Clock3, RotateCcw, X, XCircle } from 'lucide-vue-next'
 
 interface Props {
   status: 'waiting' | 'success' | 'failed'
@@ -25,15 +25,6 @@ const emit = defineEmits<{
     <div
       class="relative flex flex-1 flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white px-6 text-center"
     >
-      <a
-        href="#"
-        class="absolute right-5 top-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-        @click.prevent
-      >
-        <Github class="h-4 w-4" />
-        GitHub
-      </a>
-
       <div
         class="mb-5 flex h-16 w-16 items-center justify-center rounded-3xl"
         :class="

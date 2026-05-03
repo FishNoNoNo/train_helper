@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
-import { Github, Minus, Square, X } from 'lucide-vue-next'
+import { Minus, Square, X } from 'lucide-vue-next'
 
 const runWindowCommand = async (command: string) => {
   try {
@@ -23,7 +23,7 @@ const runWindowCommand = async (command: string) => {
             data-tauri-drag-region="true"
             class="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-900 text-white"
           >
-            <Github data-tauri-drag-region="true" class="h-3.5 w-3.5" />
+            <img src="/app-icon.png" alt="train helper" class="h-4 w-4" />
           </div>
           <span data-tauri-drag-region="true" class="text-sm font-semibold text-slate-900"
             >Train Helper</span
