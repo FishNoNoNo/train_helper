@@ -18,7 +18,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/userStore'
 import { useDataStore } from '@/store/dataStore'
-import Github from '@/components/social/github.vue'
+import Github from '@/components/social/Github.vue'
 
 type FlowStep = 'search' | 'results' | 'passengers' | 'bookingResult'
 type BookingStatus = 'waiting' | 'success' | 'failed'

@@ -1,7 +1,54 @@
-# Tauri + Vue + TypeScript
+# Train Helper
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+一个更快速的 12306 桌面客户端。
 
-## Recommended IDE Setup
+本项目目标是把 12306 的常用购票流程压缩得更直接：搜索车票、选择候选班次、配置乘车人、提交预定，并在等待订单结果时给出清晰状态。
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## 开源范围
+
+本仓库只开源爬取和整理到的 12306 接口资料，不开源完整客户端源码。
+
+当前公开内容：
+
+- `12306.postman_collection.json`：接口调试用 Postman Collection
+
+完整 App 会以安装包形式提供。
+
+## App 能做什么
+
+- 免登录搜索车票
+- 多选候选班次
+- 登录态检查
+- 乘车人配置
+- 座位等级、票种、座位偏好配置
+- 自动提交预定
+- 订单等待状态展示
+- 系统托盘任务状态提示
+
+## 使用流程
+
+```text
+搜索车票 -> 选择候选班次 -> 检查登录 -> 配置乘车人和座位 -> 开始预定 -> 查看结果
+```
+
+最终只会真正预定第一个提交订单成功的班次。
+
+## 接口文档
+
+接口见：
+
+- [12306.postman_collection.json](./12306.postman_collection.json)
+
+## 免责声明
+
+本项目仅用于学习、研究和个人效率工具探索。
+
+请遵守 12306 相关服务条款和法律法规。使用本项目产生的账号风控、请求限制、订单失败、支付超时等问题，由使用者自行承担。
+
+本项目不会承诺抢票成功率，也不会绕过 12306 的安全验证、支付流程或官方限制。
+
+## 状态
+
+当前版本：`1.0.0`
+
+App 下载地址后续提供。
