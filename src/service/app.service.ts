@@ -37,7 +37,7 @@ const getErrorMessage = (data: any, fallback: string) => {
   )
 }
 
-class AppService {
+export class AppService {
   private baseUrl: string = 'https://kyfw.12306.cn'
   private baseHeaders = {
     'user-agent':
